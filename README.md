@@ -4,5 +4,5 @@ Idea - Food preservation, expiration date, recipe, shopping list system.
 Chosen environment - Android Studio
 Authors:
 - Igor Paderewski
-- Mateusz Pstrągowsk
+- Mateusz Pstrągowski
 - Nicolas Maqueda
