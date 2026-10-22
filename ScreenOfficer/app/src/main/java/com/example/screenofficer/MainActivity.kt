@@ -1,24 +1,24 @@
 package com.example.screenofficer
 
+import android.content.Context
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.activity.*
+import androidx.activity.compose.*
+import androidx.core.content.edit
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.*
+import androidx.compose.foundation.shape.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.*
+import androidx.compose.ui.semantics.*
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -444,59 +444,101 @@ private fun EditLimitScreen(
 }
 
 @Composable
-fun ScreenOfficerApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
-
-    NavigationSuiteScaffold(
-        navigationSuiteItems = {
-            AppDestinations.entries.forEach {
-                item(
-                    icon = {
-                        Icon(
-                            painterResource(it.icon),
-                            contentDescription = it.label
-                        )
-                    },
-                    label = { Text(it.label) },
-                    selected = it == currentDestination,
-                    onClick = { currentDestination = it }
-                )
-            }
-        }
+private fun WarningScreen(app: SampleApp, settings: ReminderSettings, onBreak: () -> Unit, onContinue: () -> Unit) {
+    PageHeading(
+        eyebrow = "03 / Warning preview",
+        title = "Time for a check-in?",
+        description = "Imagine ${app.name} has reached your ${settings.minutes}-minute daily threshold.",
+    )
+    Card(
+        colors = CardDefaults.cardColors(containerColor = WarmAccent),
+        shape = RoundedCornerShape(24.dp),
     ) {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            Greeting(
-                name = "User",
-                modifier = Modifier.padding(innerPadding)
+        Column(modifier = Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(app.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text("${settings.minutes} min · Your chosen threshold", style = MaterialTheme.typography.bodyMedium)
+            Text("“${settings.message}”", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Medium)
+        }
+    }
+    Text(
+        "Demo trigger: you tapped “Preview warning”. The fixed sample usage did not trigger this screen, and no other app has been interrupted.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = TextColorLight,
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Button(onClick = onBreak, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Plan a break") }
+        OutlinedButton(onClick = onContinue, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Continue for now") }
+        Text("The choice stays yours. Both options return control to you.", style = MaterialTheme.typography.bodySmall, color = TextColorLight)
+    }
+}
+
+@Composable
+private fun BreakScreen(onReturn: () -> Unit) {
+    PageHeading(
+        eyebrow = "04 / Break plan",
+        title = "Break planned.",
+        description = "You chose a pause in the preview. When you are ready, put your phone down and step away for a moment.",
+    )
+    Surface(color = PaleGreen, shape = RoundedCornerShape(24.dp)) {
+        Column(modifier = Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Surface(
+                color = WarmAccent,
+                shape = CircleShape,
+                modifier = Modifier.size(56.dp).clearAndSetSemantics {},
+            ) {
+                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                    Text("II", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                }
+            }
+            Text("A small next step", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+            Text("Stretch, look away from the screen, or return to something you meant to do.", style = MaterialTheme.typography.bodyLarge)
+        }
+    }
+    Text(
+        "This is an acknowledgement of your choice, not a completed break. The prototype does not run a timer or measure time away from your phone.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = TextColorLight,
+    )
+    Button(onClick = onReturn, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Return to overview") }
+}
+
+@Preview(name = "01 Overview", showBackground = true)
+@Composable
+private fun HomePreview() {
+    ScreenOfficerTheme {
+        PrototypeFrame {
+            HomeScreen(
+                selectedAppId = "scrollspace",
+                settings = mapOf("scrollspace" to ReminderSettings(30, DefaultMessage)),
+                notice = null,
+                onSelectApp = {}, onEdit = {}, onPreview = {},
             )
         }
     }
 }
 
-enum class AppDestinations(
-    val label: String,
-    val icon: Int,
-) {
-    HOME("Home", R.drawable.ic_home),
-    FAVORITES("Favorites", R.drawable.ic_favorite),
-    PROFILE("Profile", R.drawable.ic_account_box),
-}
-
+@Preview(name = "02 Set reminder", showBackground = true)
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
+private fun EditPreview() {
     ScreenOfficerTheme {
-        Column(){
-            Text("User")
-            Text("User")
+        PrototypeFrame(onBack = {}, backLabel = "Cancel") {
+            EditLimitScreen(SampleApps.first(), 30, DefaultMessage, false, {}, {}, {}, {})
         }
     }
+}
+
+@Preview(name = "03 Warning preview", showBackground = true)
+@Composable
+private fun WarningPreview() {
+    ScreenOfficerTheme {
+        PrototypeFrame(onBack = {}) {
+            WarningScreen(SampleApps.first(), ReminderSettings(30, DefaultMessage), {}, {})
+        }
+    }
+}
+
+@Preview(name = "04 Break acknowledgement", showBackground = true)
+@Composable
+private fun BreakPreview() {
+    ScreenOfficerTheme { PrototypeFrame(onBack = {}) { BreakScreen {} } }
 }
