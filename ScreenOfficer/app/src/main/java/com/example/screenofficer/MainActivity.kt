@@ -20,8 +20,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
-import com.example.screenofficer.ui.theme.ScreenOfficerTheme
+import androidx.compose.ui.unit.dp
+
+private val TextColor = Color(0xFF163D36)
+private val Teal = Color(0xFF145E52)
+private val WarmWhite = Color(0xFFFFFCF5)
+private val PaleGreen = Color(0xFFEDF5EE)
+private val WarmAccent = Color(0xFFF5DCA6)
+private val TextColorLight = Color(0xFF4C6159)
+private val Outline = Color(0xFFB9C9BE)
+private const val DefaultMessage = "Is this still how you want to spend your time?"
+private const val MaxMessageLength = 120
+
+private data class SampleApp(val id: String, val name: String, val sampleMinutes: Int)
+private data class ReminderSettings(val minutes: Int, val message: String)
+
+private val SampleApps = listOf(
+    SampleApp("scrollspace", "ScrollSpace", 35),
+    SampleApp("cliploop", "ClipLoop", 20),
+)
+private val MinuteChoices = listOf(15, 30, 45, 60, 90)
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
