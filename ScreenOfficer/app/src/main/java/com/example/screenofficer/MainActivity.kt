@@ -1,7 +1,11 @@
 package com.example.screenofficer
 
+import android.app.Activity
+import android.content.ContentValues.TAG
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.*
 import androidx.activity.compose.*
 import androidx.core.content.edit
@@ -21,7 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-
+import com.example.screenofficer.ui.theme.ScreenOfficerTheme
 private val TextColor = Color(0xFF163D36)
 private val Teal = Color(0xFF145E52)
 private val WarmWhite = Color(0xFFFFFCF5)
@@ -29,6 +33,13 @@ private val PaleGreen = Color(0xFFEDF5EE)
 private val WarmAccent = Color(0xFFF5DCA6)
 private val TextColorLight = Color(0xFF4C6159)
 private val Outline = Color(0xFFB9C9BE)
+private val DeepDark = Color(0xFF121212)
+private val DarkSurfaceVariant = Color(0xFF1E2B27)
+private val DarkPrimaryContainer = Color(0xFF1F2E29)
+private val DarkSecondaryContainer = Color(0xFF3A2F1E)
+private val DarkOutline = Color(0xFF3E4E47)
+private val DarkOnSurfaceVariant = Color(0xFFC7D5CC)
+private val DarkError = Color(0xFFF2B8B5)
 private const val DefaultMessage = "Is this still how you want to spend your time?"
 private const val MaxMessageLength = 120
 
@@ -46,15 +57,40 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ScreenOfficerTheme { ScreenOfficerApp() }
+            ScreenOfficerTheme{
+                ScreenOfficerApp()
+            }
         }
     }
 }
 
 @Composable
 private fun ScreenOfficerTheme(content: @Composable () -> Unit) {
-    MaterialTheme(
-        colorScheme = lightColorScheme(
+    var mode : ColorScheme
+    val isDarkMode = isSystemInDarkTheme()
+    Log.d("ScreenOfficer", "isDarkMode=$isDarkMode")
+    if (isDarkMode) {
+        mode = darkColorScheme(
+            primary              = Teal,
+            onPrimary            = Color.White,
+            primaryContainer     = DarkPrimaryContainer,
+            onPrimaryContainer   = WarmWhite,
+            secondary            = WarmAccent,
+            onSecondary          = TextColor,
+            secondaryContainer   = DarkSecondaryContainer,
+            onSecondaryContainer = WarmAccent,
+            background           = DeepDark,
+            onBackground         = WarmWhite,
+            surface              = DeepDark,
+            onSurface            = WarmWhite,
+            surfaceVariant       = DarkSurfaceVariant,
+            onSurfaceVariant     = DarkOnSurfaceVariant,
+            outline              = DarkOutline,
+            error                = DarkError,
+        )
+    }
+    else {
+        mode = lightColorScheme(
             primary = Teal,
             onPrimary = Color.White,
             primaryContainer = PaleGreen,
@@ -70,7 +106,10 @@ private fun ScreenOfficerTheme(content: @Composable () -> Unit) {
             onSurfaceVariant = TextColorLight,
             outline = Outline,
             error = Color(0xFFA32C29),
-        ),
+        )
+    }
+    MaterialTheme(
+        mode,
         content = content,
     )
 }
@@ -205,13 +244,13 @@ private fun PrototypeFrame(
 ) {
     Scaffold(
         modifier = Modifier.imePadding(),
-        containerColor = WarmWhite,
+        containerColor = MaterialTheme.colorScheme.background,
         contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(WarmWhite)
+                    .background(MaterialTheme.colorScheme.background)
                     .statusBarsPadding()
                     .padding(horizontal = 20.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -222,7 +261,7 @@ private fun PrototypeFrame(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text("ScreenOfficer", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        Text("Your phone, your choice", style = MaterialTheme.typography.bodySmall, color = TextColorLight)
+                        Text("Your phone, your choice", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                     if (onBack != null) {
                         TextButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) {
@@ -230,13 +269,13 @@ private fun PrototypeFrame(
                         }
                     }
                 }
-                Surface(color = PaleGreen, shape = RoundedCornerShape(16.dp)) {
+                Surface(color = MaterialTheme.colorScheme.background, shape = RoundedCornerShape(16.dp), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
                     Column(Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp)) {
                         Text("Prototype · Sample data", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
                         Text(
                             "No live monitoring, blocking or phone permissions.",
                             style = MaterialTheme.typography.bodySmall,
-                            color = TextColorLight,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
@@ -263,14 +302,14 @@ private fun PrototypeFrame(
 @Composable
 private fun PageHeading(eyebrow: String, title: String, description: String) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(eyebrow.uppercase(), color = Teal, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        Text(eyebrow.uppercase(), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
         Text(
             title,
             modifier = Modifier.semantics { heading() },
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.SemiBold,
         )
-        Text(description, style = MaterialTheme.typography.bodyLarge, color = TextColorLight)
+        Text(description, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -289,7 +328,7 @@ private fun HomeScreen(
         description = "Choose a sample app and shape a reminder that sounds like you.",
     )
     if (notice != null) {
-        Surface(color = PaleGreen, shape = RoundedCornerShape(16.dp)) {
+        Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(16.dp)) {
             Text(
                 notice,
                 modifier = Modifier.fillMaxWidth().padding(16.dp).semantics { liveRegion = LiveRegionMode.Polite },
@@ -313,7 +352,7 @@ private fun HomeScreen(
     if (selectedSettings != null) {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text("Your reminder message", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-            Text("“${selectedSettings.message}”", style = MaterialTheme.typography.bodyLarge, color = TextColorLight)
+            Text("“${selectedSettings.message}”", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -331,14 +370,14 @@ private fun HomeScreen(
             if (selectedSettings == null) "Save a reminder to try the warning preview."
             else "Preview opens a simulated warning immediately. Sample usage stays fixed.",
             style = MaterialTheme.typography.bodySmall,
-            color = TextColorLight,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
-    HorizontalDivider(color = Outline)
+    HorizontalDivider(color = MaterialTheme.colorScheme.outline)
     Text(
         "You choose when to pause. This prototype explores gentle reminders and makes no claim to reduce phone use.",
         style = MaterialTheme.typography.bodyMedium,
-        color = TextColorLight,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 
@@ -351,17 +390,17 @@ private fun SampleAppCard(app: SampleApp, settings: ReminderSettings?, selected:
             .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton)
             .semantics(mergeDescendants = true) {},
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
-        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) Teal else Outline),
+        colors = CardDefaults.cardColors(containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface),
+        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline),
     ) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(app.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text("Today · ${app.sampleMinutes} min (sample)", style = MaterialTheme.typography.bodyMedium, color = TextColorLight)
+                Text("Today · ${app.sampleMinutes} min (sample)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     if (settings == null) "No reminder saved" else "Reminder at ${settings.minutes} min",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Teal,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
             Spacer(Modifier.width(8.dp))
@@ -399,7 +438,7 @@ private fun EditLimitScreen(
                         .heightIn(min = 52.dp)
                         .selectable(selected = minutes == choice, onClick = { onMinutesChange(choice) }, role = Role.RadioButton)
                         .semantics(mergeDescendants = true) {},
-                    color = if (minutes == choice) PaleGreen else Color.White,
+                    color = if (minutes == choice) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
                     shape = RoundedCornerShape(14.dp),
                     border = BorderStroke(if (minutes == choice) 2.dp else 1.dp, if (minutes == choice) Teal else Outline),
                 ) {
@@ -436,7 +475,7 @@ private fun EditLimitScreen(
         keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
         shape = RoundedCornerShape(16.dp),
     )
-    Text("Saved only on this device. No account, network or real app-usage access is needed.", style = MaterialTheme.typography.bodySmall, color = TextColorLight)
+    Text("Saved only on this device. No account, network or real app-usage access is needed.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Button(onClick = onSave, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Save reminder") }
         TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Cancel changes") }
@@ -451,7 +490,7 @@ private fun WarningScreen(app: SampleApp, settings: ReminderSettings, onBreak: (
         description = "Imagine ${app.name} has reached your ${settings.minutes}-minute daily threshold.",
     )
     Card(
-        colors = CardDefaults.cardColors(containerColor = WarmAccent),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
         shape = RoundedCornerShape(24.dp),
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -463,12 +502,12 @@ private fun WarningScreen(app: SampleApp, settings: ReminderSettings, onBreak: (
     Text(
         "Demo trigger: you tapped “Preview warning”. The fixed sample usage did not trigger this screen, and no other app has been interrupted.",
         style = MaterialTheme.typography.bodyMedium,
-        color = TextColorLight,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Button(onClick = onBreak, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Plan a break") }
         OutlinedButton(onClick = onContinue, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Continue for now") }
-        Text("The choice stays yours. Both options return control to you.", style = MaterialTheme.typography.bodySmall, color = TextColorLight)
+        Text("The choice stays yours. Both options return control to you.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -479,10 +518,10 @@ private fun BreakScreen(onReturn: () -> Unit) {
         title = "Break planned.",
         description = "You chose a pause in the preview. When you are ready, put your phone down and step away for a moment.",
     )
-    Surface(color = PaleGreen, shape = RoundedCornerShape(24.dp)) {
+    Surface(color = MaterialTheme.colorScheme.primaryContainer, shape = RoundedCornerShape(24.dp)) {
         Column(modifier = Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Surface(
-                color = WarmAccent,
+                color = MaterialTheme.colorScheme.secondaryContainer,
                 shape = CircleShape,
                 modifier = Modifier.size(56.dp).clearAndSetSemantics {},
             ) {
@@ -497,7 +536,7 @@ private fun BreakScreen(onReturn: () -> Unit) {
     Text(
         "This is an acknowledgement of your choice, not a completed break. The prototype does not run a timer or measure time away from your phone.",
         style = MaterialTheme.typography.bodyMedium,
-        color = TextColorLight,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
     Button(onClick = onReturn, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Return to overview") }
 }
@@ -505,7 +544,7 @@ private fun BreakScreen(onReturn: () -> Unit) {
 @Preview(name = "01 Overview", showBackground = true)
 @Composable
 private fun HomePreview() {
-    ScreenOfficerTheme {
+    ScreenOfficerTheme() {
         PrototypeFrame {
             HomeScreen(
                 selectedAppId = "scrollspace",
