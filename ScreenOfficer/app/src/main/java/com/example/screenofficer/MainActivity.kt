@@ -274,7 +274,175 @@ private fun PageHeading(eyebrow: String, title: String, description: String) {
     }
 }
 
-@PreviewScreenSizes
+@Composable
+private fun HomeScreen(
+    selectedAppId: String,
+    settings: Map<String, ReminderSettings>,
+    notice: String?,
+    onSelectApp: (String) -> Unit,
+    onEdit: () -> Unit,
+    onPreview: () -> Unit,
+) {
+    PageHeading(
+        eyebrow = "01 / Your overview",
+        title = "Make room for what matters.",
+        description = "Choose a sample app and shape a reminder that sounds like you.",
+    )
+    if (notice != null) {
+        Surface(color = PaleGreen, shape = RoundedCornerShape(16.dp)) {
+            Text(
+                notice,
+                modifier = Modifier.fillMaxWidth().padding(16.dp).semantics { liveRegion = LiveRegionMode.Polite },
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.selectableGroup()) {
+        Text("Choose one sample app", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        SampleApps.forEach { app ->
+            SampleAppCard(
+                app = app,
+                settings = settings[app.id],
+                selected = app.id == selectedAppId,
+                onSelect = { onSelectApp(app.id) },
+            )
+        }
+    }
+    val selectedApp = SampleApps.first { it.id == selectedAppId }
+    val selectedSettings = settings[selectedAppId]
+    if (selectedSettings != null) {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Your reminder message", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Text("“${selectedSettings.message}”", style = MaterialTheme.typography.bodyLarge, color = TextColorLight)
+        }
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Button(onClick = onEdit, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) {
+            Text(if (selectedSettings == null) "Set reminder for ${selectedApp.name}" else "Edit reminder for ${selectedApp.name}")
+        }
+        OutlinedButton(
+            onClick = onPreview,
+            enabled = selectedSettings != null,
+            modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+        ) {
+            Text("Preview warning")
+        }
+        Text(
+            if (selectedSettings == null) "Save a reminder to try the warning preview."
+            else "Preview opens a simulated warning immediately. Sample usage stays fixed.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextColorLight,
+        )
+    }
+    HorizontalDivider(color = Outline)
+    Text(
+        "You choose when to pause. This prototype explores gentle reminders and makes no claim to reduce phone use.",
+        style = MaterialTheme.typography.bodyMedium,
+        color = TextColorLight,
+    )
+}
+
+@Composable
+private fun SampleAppCard(app: SampleApp, settings: ReminderSettings?, selected: Boolean, onSelect: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .selectable(selected = selected, onClick = onSelect, role = Role.RadioButton)
+            .semantics(mergeDescendants = true) {},
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = if (selected) PaleGreen else Color.White),
+        border = BorderStroke(if (selected) 2.dp else 1.dp, if (selected) Teal else Outline),
+    ) {
+        Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(app.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text("Today · ${app.sampleMinutes} min (sample)", style = MaterialTheme.typography.bodyMedium, color = TextColorLight)
+                Text(
+                    if (settings == null) "No reminder saved" else "Reminder at ${settings.minutes} min",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Teal,
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            RadioButton(selected = selected, onClick = null, modifier = Modifier.clearAndSetSemantics {})
+        }
+    }
+}
+
+@Composable
+private fun EditLimitScreen(
+    app: SampleApp,
+    minutes: Int,
+    message: String,
+    showMessageError: Boolean,
+    onMinutesChange: (Int) -> Unit,
+    onMessageChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    PageHeading(
+        eyebrow = "02 / Edit reminder",
+        title = "A reminder, on your terms.",
+        description = "Choose a daily threshold for ${app.name}. In this prototype, the threshold is a saved preference, not an enforced limit.",
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.selectableGroup()) {
+        Text("Daily reminder threshold", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            MinuteChoices.forEach { choice ->
+                Surface(
+                    modifier = Modifier
+                        .widthIn(min = 96.dp)
+                        .heightIn(min = 52.dp)
+                        .selectable(selected = minutes == choice, onClick = { onMinutesChange(choice) }, role = Role.RadioButton)
+                        .semantics(mergeDescendants = true) {},
+                    color = if (minutes == choice) PaleGreen else Color.White,
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(if (minutes == choice) 2.dp else 1.dp, if (minutes == choice) Teal else Outline),
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "$choice min",
+                            modifier = Modifier.clearAndSetSemantics { contentDescription = "$choice minutes" },
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = if (minutes == choice) FontWeight.Bold else FontWeight.Normal,
+                        )
+                    }
+                }
+            }
+        }
+    }
+    OutlinedTextField(
+        value = message,
+        onValueChange = onMessageChange,
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text("Your reminder message") },
+        minLines = 2,
+        maxLines = 4,
+        isError = showMessageError,
+        supportingText = {
+            Column {
+                if (showMessageError) Text("Enter a message before saving.")
+                Text("${message.length}/$MaxMessageLength characters")
+            }
+        },
+        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+        shape = RoundedCornerShape(16.dp),
+    )
+    Text("Saved only on this device. No account, network or real app-usage access is needed.", style = MaterialTheme.typography.bodySmall, color = TextColorLight)
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Button(onClick = onSave, modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Text("Save reminder") }
+        TextButton(onClick = onCancel, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text("Cancel changes") }
+    }
+}
+
 @Composable
 fun ScreenOfficerApp() {
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
