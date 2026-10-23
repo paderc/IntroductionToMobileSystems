@@ -150,9 +150,8 @@ fun GetUsageData (context : Context, daysAgo : Long = 0) : Map<String, Long> {
         try {
             val pm = context.packageManager
             val appInfo = pm.getApplicationInfo(pair.component1(), 0)
-            val name = pm.getApplicationLabel(appInfo).toString()
 
-            map += name to timeMs;
+            map += packageName to timeMs;
         } catch (e : PackageManager.NameNotFoundException){
             continue
         }
@@ -161,9 +160,17 @@ fun GetUsageData (context : Context, daysAgo : Long = 0) : Map<String, Long> {
 }
 @Composable
 fun ShowUsageData(pair : Pair<String, Long>, icon : ImageBitmap, modifier : Modifier = Modifier) {
-    var packageName = pair.component1()
-    var time_ms = pair.component2()
+    val context = LocalContext.current
 
+    val packageName = pair.component1()
+    val time_ms = pair.component2()
+
+    var name : String
+    try {
+        name = GetAppLabel(context, pair.component1())
+    } catch (e : PackageManager.NameNotFoundException){
+        return
+    }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier){
         Image(
             bitmap = icon,
@@ -171,10 +178,15 @@ fun ShowUsageData(pair : Pair<String, Long>, icon : ImageBitmap, modifier : Modi
             modifier = Modifier.size(40.dp)
         )
         Column{
-            Text("${packageName}")
+            Text("${name}")
             Text("${DateUtils.formatElapsedTime(time_ms / 1000)}")
         }
     }
+}
+fun GetAppLabel(context: Context, packageName : String) : String {
+    val pm = context.packageManager
+    val appInfo = pm.getApplicationInfo(packageName, 0)
+    return pm.getApplicationLabel(appInfo).toString()
 }
 fun CheckAndRequestUsageAccess(context: Context){
     val appOps = context.getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
