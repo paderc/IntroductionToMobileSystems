@@ -1,5 +1,7 @@
 # [Screen Officer](https://github.com/paderc/IntroductionToMobileSystems)
 
+> Implementation update: the initial milestone canvas below is historical. Real time tracking, background monitoring, and soft/hard blocking are now implemented. See [Tracking and blocking](./TRACKING-AND-BLOCKING.md) for current behavior, permission setup, and limitations; it supersedes the planned native scope and exclusions below.
+
 **A customizable Android app for intentional phone use**
 
 **Authors:** Mateusz Pstrągowski 257288, Igor Paderewski 257286

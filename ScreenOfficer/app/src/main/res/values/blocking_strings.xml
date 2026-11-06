@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="blocking_service_label">ScreenOfficer app blocking</string>
+    <string name="blocking_service_description">Shows your chosen soft or hard block when an app reaches its daily limit. ScreenOfficer observes which app is open; it does not read app content, text, or screenshots. Usage Access is also required. You can disable this service in Android settings at any time.</string>
+</resources>
